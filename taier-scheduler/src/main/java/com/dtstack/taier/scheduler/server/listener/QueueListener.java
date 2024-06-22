@@ -53,10 +53,12 @@ public class QueueListener {
     private volatile Map<String, Map<String, GroupInfo>> allNodesGroupQueueJobResources = new HashMap<>();
 
 
+    //
     private void computeAllNodesGroupQueueJobResources() {
         try {
             Map<String, Map<String, GroupInfo>> allNodesGroupQueueInfo = jobDealer.getAllNodesGroupQueueInfo();
             if (allNodesGroupQueueInfo != null) {
+                // key1 计算资源类型 key2 节点地址
                 Map<String, Map<String, GroupInfo>> tmpAllNodesGroupQueueJobResources = new HashMap<>();
                 allNodesGroupQueueInfo.forEach((address, jobResourceGroupQueueInfo) -> {
                     jobResourceGroupQueueInfo.forEach((jobResource, groupInfo) -> {
@@ -75,6 +77,7 @@ public class QueueListener {
         }
     }
 
+    // 按照类型分组，在按照地址分组
     public Map<Integer, Map<String, QueueInfo>> getAllNodesJobQueueInfo() {
         try {
             Map<String, Map<Integer, QueueInfo>> allNodesJobQueueInfo = jobExecutorTrigger.getAllNodesJobQueueInfo();

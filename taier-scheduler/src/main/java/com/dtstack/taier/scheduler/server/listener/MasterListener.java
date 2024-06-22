@@ -36,6 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * company: www.dtstack.com
  * @author toutian
  * create: 2019/10/22
+ *
+ * 1. 随机选取出master节点
+ * 2. matser节点任务
+ *      生成当天的任务实例
+ *      子节点的状态检查
  */
 public class MasterListener implements LeaderLatchListener, Listener {
 
@@ -55,6 +60,7 @@ public class MasterListener implements LeaderLatchListener, Listener {
                           String localAddress) throws Exception {
         this.failoverStrategy = failoverStrategy;
 
+        // 随机从候选着中选出一台作为leader，选中之后除非调用close()释放leadship，否则其他的后选择无法成为leader
         this.latch = new LeaderLatch(curatorFramework, latchPath, localAddress);
         this.latch.addListener(this);
         this.latch.start();

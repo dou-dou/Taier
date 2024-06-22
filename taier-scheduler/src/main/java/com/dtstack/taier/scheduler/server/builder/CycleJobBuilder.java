@@ -88,13 +88,16 @@ public class CycleJobBuilder extends AbstractJobBuilder {
                 return;
             }
             clearInterruptJob(triggerTime);
-            // 2. 切割总数 限制 thread 并发
-            int totalBatch = totalTask / environmentContext.getJobGraphTaskLimitSize();
-            if (totalTask % environmentContext.getJobGraphTaskLimitSize() != 0) {
-                totalBatch++;
-            }
 
+            // 2. 切割总数 限制 thread 并发
+//            int totalBatch = totalTask / environmentContext.getJobGraphTaskLimitSize();
+//            if (totalTask % environmentContext.getJobGraphTaskLimitSize() != 0) {
+//                totalBatch++;
+//            }
+            int totalBatch = (int) Math.ceil(totalTask *1.0 / environmentContext.getJobGraphTaskLimitSize());
+            // 控制并行线程数
             Semaphore sph = new Semaphore(environmentContext.getMaxTaskBuildThread());
+            // 控制所有子任务是否完成
             CountDownLatch ctl = new CountDownLatch(totalBatch);
             AtomicJobSortWorker sortWorker = new AtomicJobSortWorker();
 

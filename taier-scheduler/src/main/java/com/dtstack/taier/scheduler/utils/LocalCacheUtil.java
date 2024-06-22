@@ -181,6 +181,7 @@ public class LocalCacheUtil {
     private Cache getCache(String group, Long expireInMillisecond) {
         return cacheMap.computeIfAbsent(group, k -> CacheBuilder.newBuilder()
                 .maximumSize(2000)
+                // 写入后多长时间失效
                 .expireAfterWrite(expireInMillisecond, TimeUnit.MILLISECONDS)
                 // 注册缓存数据被移除后的异步监听器
                 .removalListener(RemovalListeners.asynchronous((notification) -> {

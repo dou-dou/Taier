@@ -76,6 +76,7 @@ public class HeartBeatCheckListener implements Listener {
                 TimeUnit.MILLISECONDS);
     }
 
+    // 记录每个节点异常等情况下的状态（是否活跃和超时时间）
     private Map<String, BrokerNodeCount> brokerNodeCounts = Maps.newHashMap();
 
     @Override

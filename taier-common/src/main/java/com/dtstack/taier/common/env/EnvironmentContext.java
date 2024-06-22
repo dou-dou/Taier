@@ -46,6 +46,8 @@ import java.util.Map;
 public class EnvironmentContext implements InitializingBean {
 
 
+    // 全局变量的集合，从中可以获得任何变量的值
+    // 当然和@value获取的值是要一样的
     @Autowired
     private Environment environment;
 

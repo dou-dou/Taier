@@ -119,7 +119,7 @@ public class FailoverStrategy {
     public void setIsMaster(boolean isMaster) {
         if (isMaster && !currIsMaster) {
             currIsMaster = true;
-
+            // 生成当天的任务实例
             jobGraphBuilderTrigger.dealMaster(true);
             LOGGER.warn("---start jobMaster change listener------");
 
@@ -181,7 +181,6 @@ public class FailoverStrategy {
                 while (isRun) {
                     String node = queue.take();
                     LOGGER.warn("----- nodeAddress:{} node disaster recovery tasks begin to recover----", node);
-
                     faultTolerantRecoverBatchJob(node);
                     faultTolerantRecoverJobCache(node);
 
@@ -189,6 +188,7 @@ public class FailoverStrategy {
                     for (String nodeAddress : aliveNodes) {
                         LOGGER.warn("----- nodeAddress:{} masterTriggerNode -----", nodeAddress);
                         if (nodeAddress.equals(environmentContext.getLocalAddress())) {
+                            // 后续逻辑没看懂，主要是调度器相关的知识了
                             nodeRecoverService.masterTriggerNode();
                             continue;
                         }
@@ -206,7 +206,7 @@ public class FailoverStrategy {
             isRun = false;
         }
     }
-
+    // master节点将死节点上的实例进行再分配
     public void faultTolerantRecoverBatchJob(String nodeAddress) {
         try {
             //再次判断broker是否alive
@@ -245,6 +245,8 @@ public class FailoverStrategy {
             }
 
             //在迁移任务的时候，可能出现要迁移的节点也宕机了，任务没有正常接收需要再次恢复（由HearBeatCheckListener监控）。
+            //我的理解是：起初你是宕机的节点，进入该逻辑，结果在迁移过程中，出现了反复，以至于master节点，也不清楚你到底是不是正常的，那就直接当做你是宕机的，检查一下是否按照我的假定（宕机状态），检查来是否设定宕机状态。如果宕机了，那就继续走下次的数据合并，如果是正常的，那就不管了
+            //为啥这样检测：因为如果在迁移过程中，节点正常了，待迁移节点的job中肯定还有一部分job的ip不会更改。
             List<SimpleScheduleJobDTO> jobs = scheduleJobService.listSimpleJobByStatusAddress(0L, TaskStatus.getUnfinishedStatuses(), nodeAddress);
             if (CollectionUtils.isNotEmpty(jobs)) {
                 zkService.updateSynchronizedLocalBrokerHeartNode(nodeAddress, BrokerHeartNode.initNullBrokerHeartNode(), true);
@@ -257,6 +259,8 @@ public class FailoverStrategy {
     }
 
 
+    // 将运行状态更改后，则会在下次扫描任务中进行调度
+    // 本次更新的job已经更新了新的节点，因为cronJobIds+fillJobIds包含jobIds
     private void updatePhaseStatus(List<String> jobIds) {
         if (CollectionUtils.isNotEmpty(jobIds)) {
             LOGGER.info("----- updatePhaseStatus {} -----", JSONObject.toJSONString(jobIds));
@@ -368,6 +372,7 @@ public class FailoverStrategy {
         }
     }
 
+    // 将控制台队列表宕机节点的数据分配给正常节点
     private void distributeQueueJobs(Map<String, List<String>> jobResources) {
         if (jobResources.isEmpty()) {
             return;
@@ -395,6 +400,7 @@ public class FailoverStrategy {
         updateJobCaches(nodeJobs, EJobCacheStage.DB.getStage());
     }
 
+    // 直接平均分发
     private void distributeSubmittedJobs(List<String> jobs) {
         if (jobs.isEmpty()) {
             return;

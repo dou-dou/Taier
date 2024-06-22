@@ -56,6 +56,9 @@ public class JobPartitioner {
 
     /**
      * compute job number per node
+     *
+     * 1. 默认策略就是将宕机节点上实例id平均分配到正常节点上
+     * 2，实现策略是将所有未完成的实例重新划分数量，保证分配完成之后，每个节点的数量的是一样的
      */
     public Map<String, Integer> computeBatchJobSize(Integer type, int jobSize) {
         //节点挂了就会迁移的
